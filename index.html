@@ -1,1 +1,118 @@
 
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stickman Animation</title>
+<style>
+body {
+  margin: 0;
+  background: #101827;
+  color: white;
+  font-family: Arial;
+  text-align: center;
+}
+h1 { color: #38bdf8; }
+canvas {
+  width: 95%;
+  max-width: 600px;
+  background: #e0f2fe;
+  border-radius: 15px;
+}
+button {
+  padding: 12px 25px;
+  margin: 10px;
+  border: 0;
+  border-radius: 10px;
+  background: #38bdf8;
+  font-size: 16px;
+}
+</style>
+</head>
+<body>
+
+<h1>STICKMAN ANIMATION</h1>
+<p>Animasi Stickman Berjalan</p>
+
+<canvas id="game" width="600" height="350"></canvas>
+
+<br>
+<button onclick="running=!running">
+Mulai / Jeda
+</button>
+
+<script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+let frame = 0;
+let x = 100;
+let running = true;
+
+function draw() {
+  ctx.clearRect(0,0,600,350);
+
+  // Latar
+  ctx.fillStyle = "#bae6fd";
+  ctx.fillRect(0,0,600,350);
+
+  // Matahari
+  ctx.fillStyle = "orange";
+  ctx.beginPath();
+  ctx.arc(500,60,35,0,Math.PI*2);
+  ctx.fill();
+
+  // Tanah
+  ctx.fillStyle = "#4ade80";
+  ctx.fillRect(0,290,600,60);
+
+  // Stickman
+  ctx.strokeStyle = "black";
+  ctx.lineWidth = 7;
+  ctx.lineCap = "round";
+
+  // Kepala
+  ctx.beginPath();
+  ctx.arc(x,100,22,0,Math.PI*2);
+  ctx.stroke();
+
+  // Badan
+  ctx.beginPath();
+  ctx.moveTo(x,122);
+  ctx.lineTo(x,205);
+  ctx.stroke();
+
+  let swing = Math.sin(frame)*25;
+
+  // Tangan
+  ctx.beginPath();
+  ctx.moveTo(x,145);
+  ctx.lineTo(x-30-swing,180);
+  ctx.moveTo(x,145);
+  ctx.lineTo(x+30+swing,180);
+  ctx.stroke();
+
+  // Kaki
+  ctx.beginPath();
+  ctx.moveTo(x,205);
+  ctx.lineTo(x-25+swing,270);
+  ctx.moveTo(x,205);
+  ctx.lineTo(x+25-swing,270);
+  ctx.stroke();
+
+  if(running) {
+    frame += 0.15;
+    x += 2;
+
+    if(x > 650) x = -30;
+  }
+
+  requestAnimationFrame(draw);
+}
+
+draw();
+</script>
+
+</body>
+</html>
