@@ -1,118 +1,503 @@
-
 <!DOCTYPE html>
 <html lang="id">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Stickman Animation</title>
+<title>Petualangan Stickman - Scene 1</title>
+
 <style>
+* {
+  box-sizing: border-box;
+}
+
 body {
   margin: 0;
   background: #101827;
   color: white;
-  font-family: Arial;
+  font-family: Arial, sans-serif;
   text-align: center;
 }
-h1 { color: #38bdf8; }
-canvas {
-  width: 95%;
-  max-width: 600px;
-  background: #e0f2fe;
-  border-radius: 15px;
+
+h1 {
+  color: #70d6ff;
+  margin: 18px 5px 5px;
 }
+
+p {
+  color: #cbd5e1;
+}
+
+#screen {
+  width: 94%;
+  max-width: 1000px;
+  aspect-ratio: 16 / 9;
+  margin: 15px auto;
+  overflow: hidden;
+  border: 3px solid #334155;
+  border-radius: 12px;
+  position: relative;
+  background: #87ceeb;
+}
+
+canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+#caption {
+  position: absolute;
+  bottom: 12px;
+  left: 0;
+  right: 0;
+  color: white;
+  font-weight: bold;
+  text-shadow: 2px 2px 5px black;
+  pointer-events: none;
+}
+
+.controls {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 12px;
+}
+
 button {
-  padding: 12px 25px;
-  margin: 10px;
-  border: 0;
-  border-radius: 10px;
-  background: #38bdf8;
+  background: #0284c7;
+  border: none;
+  color: white;
+  padding: 13px 22px;
+  border-radius: 9px;
   font-size: 16px;
+  font-weight: bold;
+}
+
+button:active {
+  background: #0369a1;
+}
+
+#status {
+  color: #86efac;
+  margin: 8px;
 }
 </style>
 </head>
+
 <body>
 
-<h1>STICKMAN ANIMATION</h1>
-<p>Animasi Stickman Berjalan</p>
+<h1>STICKMAN ADVENTURE</h1>
+<p>Scene 1 — Awal Petualangan</p>
 
-<canvas id="game" width="600" height="350"></canvas>
+<div id="screen">
+  <div id="caption">Suatu pagi, Stickman memulai petualangannya...</div>
+</div>
 
-<br>
-<button onclick="running=!running">
-Mulai / Jeda
-</button>
+<div class="controls">
+  <button onclick="playScene()">▶ PLAY</button>
+  <button onclick="pauseScene()">⏸ PAUSE</button>
+  <button onclick="restartScene()">↻ RESTART</button>
+</div>
 
-<script>
-const canvas = document.getElementById("game");
-const ctx = canvas.getContext("2d");
+<div id="status">Memuat dunia 3D...</div>
 
-let frame = 0;
-let x = 100;
-let running = true;
+<script type="module">
+import * as THREE from
+'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 
-function draw() {
-  ctx.clearRect(0,0,600,350);
+// SCENE
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x87ceeb);
+scene.fog = new THREE.Fog(0x87ceeb, 18, 75);
 
-  // Latar
-  ctx.fillStyle = "#bae6fd";
-  ctx.fillRect(0,0,600,350);
+// CAMERA
+const camera = new THREE.PerspectiveCamera(
+  48, 16/9, 0.1, 150
+);
 
-  // Matahari
-  ctx.fillStyle = "orange";
-  ctx.beginPath();
-  ctx.arc(500,60,35,0,Math.PI*2);
-  ctx.fill();
+camera.position.set(0, 4, 11);
 
-  // Tanah
-  ctx.fillStyle = "#4ade80";
-  ctx.fillRect(0,290,600,60);
+// RENDERER
+const renderer = new THREE.WebGLRenderer({
+  antialias: true
+});
 
-  // Stickman
-  ctx.strokeStyle = "black";
-  ctx.lineWidth = 7;
-  ctx.lineCap = "round";
+renderer.setPixelRatio(
+  Math.min(window.devicePixelRatio, 2)
+);
 
-  // Kepala
-  ctx.beginPath();
-  ctx.arc(x,100,22,0,Math.PI*2);
-  ctx.stroke();
+renderer.setSize(960, 540);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
 
-  // Badan
-  ctx.beginPath();
-  ctx.moveTo(x,122);
-  ctx.lineTo(x,205);
-  ctx.stroke();
+document.getElementById("screen").appendChild(
+  renderer.domElement
+);
 
-  let swing = Math.sin(frame)*25;
+// LIGHT
+const ambient = new THREE.HemisphereLight(
+  0xffffff, 0x38552b, 2
+);
+scene.add(ambient);
 
-  // Tangan
-  ctx.beginPath();
-  ctx.moveTo(x,145);
-  ctx.lineTo(x-30-swing,180);
-  ctx.moveTo(x,145);
-  ctx.lineTo(x+30+swing,180);
-  ctx.stroke();
+const sunlight = new THREE.DirectionalLight(
+  0xffe5a0, 3
+);
 
-  // Kaki
-  ctx.beginPath();
-  ctx.moveTo(x,205);
-  ctx.lineTo(x-25+swing,270);
-  ctx.moveTo(x,205);
-  ctx.lineTo(x+25-swing,270);
-  ctx.stroke();
+sunlight.position.set(-8, 14, 8);
+sunlight.castShadow = true;
+scene.add(sunlight);
 
-  if(running) {
-    frame += 0.15;
-    x += 2;
+// MATERIALS
+const green = new THREE.MeshStandardMaterial({
+  color: 0x286b36
+});
 
-    if(x > 650) x = -30;
-  }
+const darkGreen = new THREE.MeshStandardMaterial({
+  color: 0x174d2b
+});
 
-  requestAnimationFrame(draw);
+const brown = new THREE.MeshStandardMaterial({
+  color: 0x76502d
+});
+
+const black = new THREE.MeshStandardMaterial({
+  color: 0x171717,
+  roughness: 0.7
+});
+
+const white = new THREE.MeshStandardMaterial({
+  color: 0xffffff
+});
+
+// GROUND
+const ground = new THREE.Mesh(
+  new THREE.PlaneGeometry(150, 150),
+  new THREE.MeshStandardMaterial({
+    color: 0x438b3c
+  })
+);
+
+ground.rotation.x = -Math.PI / 2;
+ground.position.y = -0.08;
+ground.receiveShadow = true;
+scene.add(ground);
+
+// FOREST PATH
+const path = new THREE.Mesh(
+  new THREE.PlaneGeometry(5, 150),
+  new THREE.MeshStandardMaterial({
+    color: 0xb69a6a
+  })
+);
+
+path.rotation.x = -Math.PI / 2;
+path.position.set(0, 0, -35);
+scene.add(path);
+
+// TREE FUNCTION
+function createTree(x, z, scale) {
+  const tree = new THREE.Group();
+
+  const trunk = new THREE.Mesh(
+    new THREE.CylinderGeometry(
+      0.15, 0.25, 2.2, 8
+    ),
+    brown
+  );
+
+  trunk.position.y = 1.1;
+  trunk.castShadow = true;
+  tree.add(trunk);
+
+  const leaves = new THREE.Mesh(
+    new THREE.ConeGeometry(1.1, 3.5, 8),
+    green
+  );
+
+  leaves.position.y = 3.2;
+  leaves.castShadow = true;
+  tree.add(leaves);
+
+  const leaves2 = new THREE.Mesh(
+    new THREE.ConeGeometry(0.8, 2.7, 8),
+    darkGreen
+  );
+
+  leaves2.position.y = 4;
+  tree.add(leaves2);
+
+  tree.position.set(x, 0, z);
+  tree.scale.setScalar(scale);
+
+  scene.add(tree);
 }
 
-draw();
+// CREATE FOREST
+for (let i = 0; i < 65; i++) {
+  const side = i % 2 === 0 ? -1 : 1;
+
+  const x = side * (
+    4 + Math.random() * 18
+  );
+
+  const z = 12 - Math.random() * 90;
+
+  createTree(
+    x, z, 0.7 + Math.random() * 1.1
+  );
+}
+
+// ROCKS
+for (let i = 0; i < 30; i++) {
+  const rock = new THREE.Mesh(
+    new THREE.DodecahedronGeometry(
+      0.2 + Math.random() * 0.4
+    ),
+    new THREE.MeshStandardMaterial({
+      color: 0x777777
+    })
+  );
+
+  rock.position.set(
+    (Math.random() > 0.5 ? 1 : -1) *
+    (3 + Math.random() * 4),
+    0.2,
+    10 - Math.random() * 75
+  );
+
+  rock.castShadow = true;
+  scene.add(rock);
+}
+
+// STICKMAN
+const stickman = new THREE.Group();
+scene.add(stickman);
+
+// HEAD
+const head = new THREE.Mesh(
+  new THREE.SphereGeometry(0.34, 24, 24),
+  black
+);
+
+head.position.y = 2.65;
+head.scale.set(0.9, 1.05, 0.85);
+head.castShadow = true;
+stickman.add(head);
+
+// EYES
+for (const side of [-1, 1]) {
+  const eye = new THREE.Mesh(
+    new THREE.SphereGeometry(0.045, 12, 12),
+    white
+  );
+
+  eye.position.set(
+    side * 0.12, 2.7, 0.285
+  );
+
+  stickman.add(eye);
+}
+
+// BODY
+const body = new THREE.Mesh(
+  new THREE.CylinderGeometry(
+    0.12, 0.15, 1.05, 16
+  ),
+  black
+);
+
+body.position.y = 1.85;
+body.castShadow = true;
+stickman.add(body);
+
+// JOINT FUNCTION
+function makeJoint(x, y) {
+  const joint = new THREE.Group();
+  joint.position.set(x, y, 0);
+  stickman.add(joint);
+  return joint;
+}
+
+// LIMB FUNCTION
+function makeLimb(parent, length, radius) {
+  const limb = new THREE.Mesh(
+    new THREE.CylinderGeometry(
+      radius, radius, length, 12
+    ),
+    black
+  );
+
+  limb.position.y = -length / 2;
+  limb.castShadow = true;
+  parent.add(limb);
+
+  return limb;
+}
+
+// ARMS
+const leftShoulder = makeJoint(-0.18, 2.2);
+const rightShoulder = makeJoint(0.18, 2.2);
+
+makeLimb(leftShoulder, 0.75, 0.075);
+makeLimb(rightShoulder, 0.75, 0.075);
+
+// LEGS
+const leftHip = makeJoint(-0.12, 1.3);
+const rightHip = makeJoint(0.12, 1.3);
+
+makeLimb(leftHip, 0.85, 0.09);
+makeLimb(rightHip, 0.85, 0.09);
+
+// FEET
+const leftFoot = new THREE.Mesh(
+  new THREE.BoxGeometry(0.2, 0.12, 0.32),
+  black
+);
+
+const rightFoot = leftFoot.clone();
+
+leftFoot.position.set(0, -0.85, 0.08);
+rightFoot.position.set(0, -0.85, 0.08);
+
+leftHip.add(leftFoot);
+rightHip.add(rightFoot);
+
+// CHARACTER POSITION
+stickman.position.set(0, 0, 3);
+
+// CAMERA TARGET
+const target = new THREE.Vector3(0, 1.5, -1);
+
+// ANIMATION
+let playing = true;
+let elapsed = 0;
+let lastTime = 0;
+const duration = 5;
+
+function animate(time) {
+  requestAnimationFrame(animate);
+
+  const dt = Math.min(
+    (time - lastTime) / 1000, 0.05
+  );
+
+  lastTime = time;
+
+  if (playing) {
+    elapsed += dt;
+
+    if (elapsed >= duration) {
+      elapsed = 0;
+    }
+
+    const walk = elapsed * 7;
+
+    // WALKING LEGS
+    leftHip.rotation.x = Math.sin(walk) * 0.65;
+    rightHip.rotation.x = Math.sin(walk + Math.PI) * 0.65;
+
+    // WALKING ARMS
+    leftShoulder.rotation.x =
+      Math.sin(walk + Math.PI) * 0.55;
+
+    rightShoulder.rotation.x =
+      Math.sin(walk) * 0.55;
+
+    // BODY BOUNCE
+    stickman.position.x =
+      Math.sin(walk * 0.5) * 0.12;
+
+    stickman.position.y =
+      Math.abs(Math.sin(walk)) * 0.06;
+
+    // HEAD MOVEMENT
+    head.rotation.z =
+      Math.sin(walk * 0.5) * 0.04;
+
+    // WALK FORWARD
+    stickman.position.z =
+      3 - elapsed * 0.55;
+
+    // CAMERA FOLLOW
+    const desiredCamera = new THREE.Vector3(
+      stickman.position.x,
+      4.2,
+      stickman.position.z + 8
+    );
+
+    camera.position.lerp(
+      desiredCamera, 0.035
+    );
+
+    target.set(
+      stickman.position.x,
+      1.5,
+      stickman.position.z - 2
+    );
+
+    camera.lookAt(target);
+
+  }
+
+  renderer.render(scene, camera);
+
+  document.getElementById("status").textContent =
+    playing
+    ? "▶ Scene sedang berjalan"
+    : "⏸ Scene dijeda";
+}
+
+function playScene() {
+  playing = true;
+}
+
+function pauseScene() {
+  playing = false;
+}
+
+function restartScene() {
+  elapsed = 0;
+  stickman.position.set(0, 0, 3);
+
+  leftHip.rotation.x = 0;
+  rightHip.rotation.x = 0;
+  leftShoulder.rotation.x = 0;
+  rightShoulder.rotation.x = 0;
+
+  playing = true;
+}
+
+// RESPONSIVE
+window.addEventListener("resize", () => {
+  const screen = document.getElementById("screen");
+
+  const width = screen.clientWidth;
+  const height = width * 9 / 16;
+
+  camera.aspect = 16 / 9;
+  camera.updateProjectionMatrix();
+
+  renderer.setSize(width, height);
+});
+
+window.addEventListener("error", () => {
+  document.getElementById("status").textContent =
+    "Terjadi kesalahan. Periksa koneksi internet.";
+});
+
+requestAnimationFrame(animate);
+
+window.playScene = playScene;
+window.pauseScene = pauseScene;
+window.restartScene = restartScene;
+
+document.getElementById("status").textContent =
+  "Scene 1 siap dimainkan!";
 </script>
 
 </body>
-</html>
+  </html>
+  
